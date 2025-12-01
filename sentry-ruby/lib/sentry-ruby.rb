@@ -241,7 +241,7 @@ module Sentry
       client = Client.new(config)
       scope = Scope.new(max_breadcrumbs: config.max_breadcrumbs)
       hub = Hub.new(client, scope)
-      Thread.current.thread_variable_set(THREAD_LOCAL, hub)
+      Fiber[THREAD_LOCAL] = hub
       @main_hub = hub
       @background_worker = Sentry::BackgroundWorker.new(config)
       @session_flusher = config.session_tracking? ? Sentry::SessionFlusher.new(config, client) : nil
@@ -278,7 +278,7 @@ module Sentry
 
       MUTEX.synchronize do
         @main_hub = nil
-        Thread.current.thread_variable_set(THREAD_LOCAL, nil)
+        Fiber[THREAD_LOCAL] = nil
       end
     end
 
@@ -331,7 +331,7 @@ module Sentry
       # ideally, we should do this proactively whenever a new thread is created
       # but it's impossible for the SDK to keep track every new thread
       # so we need to use this rather passive way to make sure the app doesn't crash
-      Thread.current.thread_variable_get(THREAD_LOCAL) || clone_hub_to_current_thread
+      Fiber[THREAD_LOCAL] || clone_hub_to_current_thread
     end
 
     # Returns the current active client.
@@ -354,7 +354,7 @@ module Sentry
     # @return [void]
     def clone_hub_to_current_thread
       return unless initialized?
-      Thread.current.thread_variable_set(THREAD_LOCAL, get_main_hub.clone)
+      Fiber[THREAD_LOCAL] = get_main_hub.clone
     end
 
     # Takes a block and yields the current active scope.

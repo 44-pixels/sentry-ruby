@@ -1316,9 +1316,9 @@ RSpec.describe Sentry do
       end
 
       it "removes thread local" do
-        expect(Thread.current.thread_variable_get(described_class::THREAD_LOCAL)).to be_a(Sentry::Hub)
+        expect(Fiber[described_class::THREAD_LOCAL]).to be_a(Sentry::Hub)
         described_class.close
-        expect(Thread.current.thread_variable_get(described_class::THREAD_LOCAL)).to eq(nil)
+        expect(Fiber[described_class::THREAD_LOCAL]).to eq(nil)
       end
 
       it "calls background worker shutdown" do
