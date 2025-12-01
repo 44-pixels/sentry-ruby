@@ -334,6 +334,13 @@ module Sentry
       Fiber[THREAD_LOCAL] || clone_hub_to_current_thread
     end
 
+    # Replaces the current hub with the given one.
+    #
+    # @return [Hub]
+    def set_current_hub(hub)
+      Fiber[THREAD_LOCAL] = hub
+    end
+
     # Returns the current active client.
     # @return [Client, nil]
     def get_current_client
